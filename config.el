@@ -9,14 +9,6 @@
 (map! :leader
       "." #'dirvish)
 
-(defun my/neotree-toggle ()
-  "Neotree-toggle fails to track the path of the current file so i toggled neotree-find"
-  (interactive)
-  (if (neo-global--window-exists-p)
-      (neotree-hide)
-    (neotree-find (buffer-file-name))))
-
-(map! :n "T" #'my/neotree-toggle)
 (after! neotree
   (map! :map neotree-mode-map
         :n "h" #'neotree-select-up-node
@@ -109,3 +101,8 @@
         (vterm-send-return)))))
 
 (map! :n "<f5>" #'my/run-current-file)
+
+(map! :leader
+      (:prefix ("o" . "open")
+       :desc "Open home.nix" "h" (lambda () (interactive) (find-file "~/.dotfiles/home.nix"))
+       :desc "Open config.nix" "c" (lambda () (interactive) (find-file "~/.dotfiles/configuration.nix"))))
