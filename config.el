@@ -102,7 +102,10 @@
 
 (map! :n "<f5>" #'my/run-current-file)
 
+;;opening files
 (map! :leader
       (:prefix ("o" . "open")
        :desc "Open home.nix" "h" (lambda () (interactive) (find-file "~/.dotfiles/home.nix"))
        :desc "Open config.nix" "c" (lambda () (interactive) (find-file "~/.dotfiles/configuration.nix"))))
+
+;;performing acitons
