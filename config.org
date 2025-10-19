@@ -55,24 +55,26 @@
   (let ((default-directory (if (derived-mode-p 'dired-mode)
                                default-directory
                              (file-name-directory (or buffer-file-name default-directory)))))
-    ;; Create buffer without switching
     (let ((buf (generate-new-buffer "vterm-right")))
-      ;; Start vterm inside that buffer
       (with-current-buffer buf
         (vterm-mode))
-      ;; Display it on the right side and get the window
       (let ((win (display-buffer-in-side-window
                   buf
                   '((side . right)
                     (slot . 1)
                     (window-width . 0.35)))))
-        ;; Focus the new window
         (select-window win))
       buf)))
 
 (map! :leader
       "t v" #'my/vterm-right)
 
+#+end_src
+*** MAGIT
+#+begin_src emacs-lisp
+
+(map! :leader
+      "m g" #'magit-status)
 #+end_src
 ** PACKAGE
 *** MPV
@@ -97,7 +99,6 @@
                                 default-directory))
          cmd)
 
-    ;; determine command
     (setq cmd
           (cond
            ;; Rust Cargo project
