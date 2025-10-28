@@ -6,8 +6,39 @@
 
 (setq display-line-numbers-type 'relative)
 
+(setq fancy-splash-image "~/.config/doom/kyrii.png")
+(add-hook '+doom-dashboard-mode-hook
+          (lambda ()
+            (run-with-idle-timer
+             0 nil #'hide-mode-line-mode)))
+
+(defun my/ascii-banner ()
+  (insert "\n"
+"                       ▓█████▄  ▒█████   ▒█████   ███▄ ▄███▓
+                       ▒██▀ ██▌▒██▒  ██▒▒██▒  ██▒▓██▒▀█▀ ██▒
+                       ░██   █▌▒██░  ██▒▒██░  ██▒▓██    ▓██░
+                       ░▓█▄   ▌▒██   ██░▒██   ██░▒██    ▒██
+                       ░▒████▓ ░ ████▓▒░░ ████▓▒░▒██▒   ░██▒
+                       ▒▒▓  ▒ ░ ▒░▒░▒░ ░ ▒░▒░▒░ ░ ▒░   ░  ░
+                       ░ ▒  ▒   ░ ▒ ▒░   ░ ▒ ▒░ ░  ░      ░
+                       ░ ░  ░ ░ ░ ░ ▒  ░ ░ ░ ▒  ░      ░
+                       ░        ░ ░      ░ ░         ░
+                       ░
+
+
+\n"))
+
+(setq +doom-dashboard-functions
+      '(doom-dashboard-widget-banner
+        my/ascii-banner))
+
 (map! :leader
       "." #'dirvish)
+(after! dirvish
+  (define-key dirvish-mode-map (kbd ".") #'dirvish-toggle-hidden))
+(after! dired
+  (map! :map dired-mode-map
+        :n "a" #'dired-create-empty-file))
 
 (after! neotree
   (map! :map neotree-mode-map
@@ -37,8 +68,7 @@
 (map! :leader
       "t v" #'my/vterm-right)
 
-(map! :leader
-      "m g" #'magit-status)
+
 
 (map! :leader
       "v" (cmd! (mpv-play (read-file-name "Play video: "))))

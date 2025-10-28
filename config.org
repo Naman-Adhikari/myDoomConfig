@@ -18,11 +18,45 @@
 #+begin_src emacs-lisp
 (setq display-line-numbers-type 'relative)
 #+end_src
+*** DASHBOARD
+#+begin_src emacs-lisp
+(setq fancy-splash-image "~/.config/doom/kyrii.png")
+(add-hook '+doom-dashboard-mode-hook
+          (lambda ()
+            (run-with-idle-timer
+             0 nil #'hide-mode-line-mode)))
+
+(defun my/ascii-banner ()
+  (insert "\n"
+"                       ▓█████▄  ▒█████   ▒█████   ███▄ ▄███▓
+                       ▒██▀ ██▌▒██▒  ██▒▒██▒  ██▒▓██▒▀█▀ ██▒
+                       ░██   █▌▒██░  ██▒▒██░  ██▒▓██    ▓██░
+                       ░▓█▄   ▌▒██   ██░▒██   ██░▒██    ▒██
+                       ░▒████▓ ░ ████▓▒░░ ████▓▒░▒██▒   ░██▒
+                       ▒▒▓  ▒ ░ ▒░▒░▒░ ░ ▒░▒░▒░ ░ ▒░   ░  ░
+                       ░ ▒  ▒   ░ ▒ ▒░   ░ ▒ ▒░ ░  ░      ░
+                       ░ ░  ░ ░ ░ ░ ▒  ░ ░ ░ ▒  ░      ░
+                       ░        ░ ░      ░ ░         ░
+                       ░
+
+
+\n"))
+
+(setq +doom-dashboard-functions
+      '(doom-dashboard-widget-banner
+        my/ascii-banner))
+ #+end_src
 ** APPS
 *** DIRVISH
 #+begin_src emacs-lisp
 (map! :leader
       "." #'dirvish)
+(after! dirvish
+  (define-key dirvish-mode-map (kbd ".") #'dirvish-toggle-hidden))
+(after! dired
+  (map! :map dired-mode-map
+        :n "a" #'dired-create-empty-file))
+
 
 #+end_src
 *** NEOTREE
@@ -65,8 +99,6 @@
 *** MAGIT
 #+begin_src emacs-lisp
 
-(map! :leader
-      "m g" #'magit-status)
 #+end_src
 ** PACKAGE
 *** MPV
