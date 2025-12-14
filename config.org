@@ -9,10 +9,17 @@
 (setq doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 19)
       doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 19)
       doom-unicode-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 19))
+;; Blink cursor
+(blink-cursor-mode 1)
 #+end_src
 *** THEME
 #+begin_src emacs-lisp
 (setq doom-theme 'doom-ir-black)
+#+end_src
+*** TRANSPARENCY
+#+begin_src emacs-lisp
+;; Transparency
+
 #+end_src
 *** LINE
 #+begin_src emacs-lisp
@@ -179,5 +186,36 @@
        :desc "Open config.nix" "c" (lambda () (interactive) (find-file "~/.dotfiles/configuration.nix"))))
 
 ;;performing acitons
+
+#+end_src
+*** TSX HIGHLIGHT
+#+begin_src emacs-lisp
+;; Use web-mode for TSX files
+(use-package! web-mode
+  :mode ("\\.tsx\\'" . web-mode)
+  :config
+  (setq web-mode-content-types-alist '(("jsx" . "\\.tsx\\'")))
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-markup-indent-offset 2))
+#+end_src
+*** NEW EMPTY FILE
+#+begin_src emacs-lisp
+(map!
+ :leader
+ :prefix "f"
+ :desc "New file in current directory"
+ "n" (lambda ()
+       (interactive)
+       (let ((default-directory (expand-file-name default-directory)))
+         (call-interactively 'find-file))))
+#+end_src
+*** LATEX COMPILER
+#+begin_src emacs-lisp
+(after! org
+  (setq org-latex-pdf-process
+        '("xelatex -interaction=nonstopmode -output-directory=%o %f"
+          "xelatex -interaction=nonstopmode -output-directory=%o %f")))
+(setq +latex-viewers '(pdf-tools))
 
 #+end_src

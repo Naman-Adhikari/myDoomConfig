@@ -1,8 +1,12 @@
 (setq doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 19)
       doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 19)
       doom-unicode-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 19))
+;; Blink cursor
+(blink-cursor-mode 1)
 
 (setq doom-theme 'doom-ir-black)
+
+;; Transparency
 
 (setq display-line-numbers-type 'relative)
 
@@ -139,3 +143,27 @@
        :desc "Open config.nix" "c" (lambda () (interactive) (find-file "~/.dotfiles/configuration.nix"))))
 
 ;;performing acitons
+
+;; Use web-mode for TSX files
+(use-package! web-mode
+  :mode ("\\.tsx\\'" . web-mode)
+  :config
+  (setq web-mode-content-types-alist '(("jsx" . "\\.tsx\\'")))
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-markup-indent-offset 2))
+
+(map!
+ :leader
+ :prefix "f"
+ :desc "New file in current directory"
+ "n" (lambda ()
+       (interactive)
+       (let ((default-directory (expand-file-name default-directory)))
+         (call-interactively 'find-file))))
+
+(after! org
+  (setq org-latex-pdf-process
+        '("xelatex -interaction=nonstopmode -output-directory=%o %f"
+          "xelatex -interaction=nonstopmode -output-directory=%o %f")))
+(setq +latex-viewers '(pdf-tools))
