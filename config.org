@@ -14,12 +14,12 @@
 #+end_src
 *** THEME
 #+begin_src emacs-lisp
-(setq doom-theme 'doom-ir-black)
-#+end_src
-*** TRANSPARENCY
-#+begin_src emacs-lisp
-;; Transparency
-
+;;(setq doom-theme 'doom-outrun-electric)
+;;(setq doom-theme 'doom-lantern)
+;;(setq doom-theme 'doom-ephemeral)
+;;(setq doom-theme 'doom-ir-black)
+(add-to-list 'custom-theme-load-path "~/.config/doom/theme/")
+(setq doom-theme 'doom-custom)
 #+end_src
 *** LINE
 #+begin_src emacs-lisp
@@ -59,12 +59,13 @@
 (map! :leader
       "." #'dirvish)
 (after! dirvish
-  (define-key dirvish-mode-map (kbd ".") #'dirvish-toggle-hidden))
+  (define-key dirvish-mode-map (kbd "'") #'dirvish-toggle-hidden)
+(add-to-list 'dirvish-preview-disabled-exts "task"))
 (after! dired
   (map! :map dired-mode-map
         :n "a" #'dired-create-empty-file))
 
-
+(add-hook 'dirvish-mode-hook (lambda () (text-scale-set 0)))
 #+end_src
 *** NEOTREE
 #+begin_src emacs-lisp
@@ -99,15 +100,47 @@
         (select-window win))
       buf)))
 
-(map! :leader
-      "t v" #'my/vterm-right)
-
 #+end_src
 *** MAGIT
 #+begin_src emacs-lisp
 
 #+end_src
+*** COMPLETIONS
+#+begin_src emacs-lisp
+(after! corfu
+  (setq corfu-auto t                   
+        corfu-auto-delay 0.15           
+        corfu-auto-prefix 2             
+        corfu-cycle t                   
+        corfu-preselect 'prompt         
+        corfu-preview-current nil       
+        corfu-quit-no-match t)
+
+  ;; Nice keybindings
+  (map! :map corfu-map
+        "C-j" #'corfu-next
+        "C-k" #'corfu-previous
+        "TAB" #'corfu-insert
+        "RET" #'corfu-insert))
+
+(after! cape
+  (add-to-list 'completion-at-point-functions #'cape-file)
+
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+
+  (setq cape-dabbrev-min-length 3))
+
+#_end_src
+*** DIRENV
+#+begin_src emacs-lisp
+(use-package! envrc
+  :config
+  (envrc-global-mode))
+#+end_src
 ** PACKAGE
+
 *** MPV
 #+begin_src emacs-lisp
   (map! :leader
@@ -115,82 +148,76 @@
 
 #+end_src
 ** OTHER FNS
-*** COMPILE
-#+begin_src emacs-lisp
-(defun my/run-current-file ()
-  "Run the current file in a persistent vterm buffer at the bottom, depending on its type."
+*** LAUNCHING LLM
+#+begin_src emacs_lisp
+(defun my/open-qwen ()
   (interactive)
-  (unless buffer-file-name
-    (user-error "Buffer not visiting a file"))
-  (save-buffer)
-
-  (let* ((file buffer-file-name)
-         (ext (file-name-extension file))
-         (default-directory (or (locate-dominating-file file "Cargo.toml")
-                                default-directory))
-         cmd)
-
-    (setq cmd
-          (cond
-           ;; Rust Cargo project
-           ((and (string= ext "rs")
-                 (file-exists-p (expand-file-name "Cargo.toml" default-directory)))
-            "cargo run")
-           ;; Rust standalone file
-           ((string= ext "rs")
-            (format "rustc '%s' -o /tmp/a.out && /tmp/a.out" file))
-           ;; C
-           ((string= ext "c")
-            (format "gcc '%s' -o /tmp/a.out && /tmp/a.out" file))
-           ;; C++
-           ((string= ext "cpp")
-            (format "g++ '%s' -o /tmp/a.out && /tmp/a.out" file))
-           ;; Python
-           ((string= ext "py")
-            (format "python3 '%s'" file))
-           ;; LaTeX
-           ((string= ext "tex")
-            (format "pdflatex -interaction=nonstopmode '%s'" file))
-           ;; unknown
-           (t (user-error "No run rule defined for *.%s files" ext))))
-
-    ;; spawn or reuse persistent vterm buffer
-    (require 'vterm)
-    (let ((vterm-buffer (get-buffer-create "*Run File*")))
-      ;; display at bottom with smaller height
-      (display-buffer-in-side-window
-       vterm-buffer
-       '((side . right)
-         (slot . 0)
-         (window-height . 0.2)))  ;; 20% of frame height
-
-      ;; start vterm if not running
-      (unless (comint-check-proc vterm-buffer)
-        (with-current-buffer vterm-buffer
-          (vterm-mode)))
-
-      ;; send command
-      (with-current-buffer vterm-buffer
-        (vterm-send-string cmd)
-        (vterm-send-return)))))
-
-(map! :n "<f5>" #'my/run-current-file)
-
-#+end_src
+  (let* ((buffer (get-buffer-create "*my-side-term*"))
+         (window (display-buffer-in-side-window
+                  buffer
+                  '((side . right)
+                    (slot . 0)
+                    (window-width . 0.4)))))
+    (select-window window)  ;; <-- This gives it focus
+    (with-current-buffer buffer
+      (unless (derived-mode-p 'vterm-mode)
+        (vterm-mode))
+      (vterm-send-string "ollama run qwen2.5-coder:1.5b")
+      (vterm-send-return))))
+      #+end_src
 *** ALIASBIND
 #+begin_src emacs-lisp
 ;;opening files
 (map! :leader
       (:prefix ("o" . "open")
        :desc "Open home.nix" "h" (lambda () (interactive) (find-file "~/.dotfiles/home.nix"))
+       :desc "Open qwen" "q" #'my/open-qwen
+       :desc "Open hyprland.conf" "H" (lambda () (interactive) (find-file "~/.dotfiles/modules/hyprland/hyprland.conf"))
        :desc "Open config.nix" "c" (lambda () (interactive) (find-file "~/.dotfiles/configuration.nix"))))
 
 ;;performing acitons
 
 #+end_src
+*** RUN CODE
+#+begin_src emacs-lisp
+(defun my/run-file-in-vterm ()
+  "Open vterm popup in current file's directory and run command based on file type.
+After sending command, go to normal mode in vterm."
+  (interactive)
+  (let* ((file (buffer-file-name))
+         (ext  (when file (file-name-extension file)))
+         (default-directory (or (file-name-directory file) default-directory))
+         (cmd
+          (cond
+           ((string= ext "rs") "cargo run")
+           ((string= ext "c")
+            (format "gcc %s -o a.out && ./a.out"
+                    (shell-quote-argument file)))
+           ((string= ext "cpp")
+            (format "g++ %s -o a.out && ./a.out"
+                    (shell-quote-argument file)))
+           ((string= ext "py")
+            (format "python %s"
+                    (shell-quote-argument file)))
+           (t (read-shell-command "Run command: ")))))
+    ;; Open vterm popup
+    (vterm)
+    ;; Send command
+    (vterm-send-string cmd)
+    (vterm-send-return)
+    ;; Switch to normal mode in vterm
+    (when (fboundp 'evil-normal-state)
+      (evil-normal-state))))
+
+;; Bind it to a key, e.g. SPC o r
+(map! :leader
+      :desc "Run current file in vterm"
+      "o e" #'my/run-file-in-vterm)
+
+#+end_src
 *** TSX HIGHLIGHT
 #+begin_src emacs-lisp
-;; Use web-mode for TSX files
+;; use web-mode for tsx files
 (use-package! web-mode
   :mode ("\\.tsx\\'" . web-mode)
   :config
@@ -216,6 +243,105 @@
   (setq org-latex-pdf-process
         '("xelatex -interaction=nonstopmode -output-directory=%o %f"
           "xelatex -interaction=nonstopmode -output-directory=%o %f")))
-(setq +latex-viewers '(pdf-tools))
+(add-hook 'LaTeX-mode-hook #'cdlatex-mode)
+(after! cdlatex
+  (map! :map cdlatex-mode-map
+        :i "C-c e" #'cdlatex-environment))
 
+(setq +latex-viewers '(pdf-tools))
+(add-hook 'LaTeX-mode-hook (lambda ()
+                             (outline-minor-mode 1)))
+(map! :map cdlatex-mode-map
+      :i "TAB" #'cdlatex-tab)
 #+end_src
+*** ZEN MODE
+#+begin_src emacs-lisp
+;   (after! writeroom-mode
+;   (setq writeroom-global-effects nil
+;           writeroom-scale 1))
+;
+;   (add-hook 'after-change-major-mode-hook #'writeroom-mode)
+(text-scale-set 0)
+#+end_src
+*** DISABLE MODELINE
+#+begin_src emacs-lisp
+(setq-default mode-line-format nil)
+  #+end_src
+*** HIGHLIGHT INDENT GUIDE
+#+begin_src emacs-lisp
+(after! highlight-indent-guides
+  ;; enable in programming modes
+  (add-hook 'prog-mode-hook #'highlight-indent-guides-mode)
+  ;; appearance
+  (setq highlight-indent-guides-method 'character
+        highlight-indent-guides-delay 0.1)
+  (set-face-attribute 'highlight-indent-guides-odd-face nil :foreground "#444444")
+  (set-face-attribute 'highlight-indent-guides-even-face nil :foreground "#333333")
+  (set-face-attribute 'highlight-indent-guides-character-face nil :foreground "#555555"))
+(map! :leader
+      :desc "Toggle indent guides"
+      "a h" #'highlight-indent-guides-mode)
+  #+end_src
+*** DICTIONARY AND FLY SPELL
+#+begin_src  emacs-lisp
+(add-hook 'text-mode-hook #'flyspell-mode)
+(add-hook 'prog-mode-hook #'flyspell-prog-mode)
+
+(use-package! wordnut
+  :config
+  (setq wordnut-command "wn"))
+
+(map! :leader
+      :desc "Lookup word meaning"
+      "a d" #'wordnut-search)
+#+end_src
+*** EMACS EVERYWHERE WAY-LAND
+    #+begin_src emacs-lisp
+
+    (defun thanos/wtype-text (text)
+    "Process TEXT for wtype, handling newlines properly."
+    (let* ((has-final-newline (string-match-p "\n$" text))
+            (lines (split-string text "\n"))
+            (last-idx (1- (length lines))))
+        (string-join
+        (cl-loop for line in lines
+                for i from 0
+                collect (cond
+                        ;; Last line without final newline
+                        ((and (= i last-idx) (not has-final-newline))
+                            (format "wtype -s 350 \"%s\""
+                                    (replace-regexp-in-string "\"" "\\\\\"" line)))
+                        ;; Any other line
+                        (t
+                            (format "wtype -s 350 \"%s\" && wtype -k Return"
+                                    (replace-regexp-in-string "\"" "\\\\\"" line)))))
+        " && ")))
+
+    (defun thanos/type ()
+    "Launch a temporary frame with a clean buffer for typing."
+    (interactive)
+    (let ((frame (make-frame '((name . "emacs-float")
+                                (fullscreen . 0)
+                                (undecorated . t)
+                                (width . 70)
+                                (height . 20))))
+            (buf (get-buffer-create "emacs-float")))
+        (select-frame frame)
+        (switch-to-buffer buf)
+        (erase-buffer)
+        (org-mode)
+        (setq-local header-line-format
+                    (format " %s to insert text or %s to cancel."
+                            (propertize "C-c C-c" 'face 'help-key-binding)
+                (propertize "C-c C-k" 'face 'help-key-binding)))
+        (local-set-key (kbd "C-c C-k")
+            (lambda () (interactive)
+                (kill-new (buffer-string))
+                (delete-frame)))
+        (local-set-key (kbd "C-c C-c")
+            (lambda () (interactive)
+                (start-process-shell-command
+                "wtype" nil
+                (thanos/wtype-text (buffer-string)))
+                (delete-frame)))))
+    #+end_src
