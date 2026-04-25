@@ -32,7 +32,7 @@
        ;;unicode           ; extended unicode support for various languages
        (vc-gutter +pretty) ; vcs diff in the fringe
        ;;vi-tilde-fringe   ; fringe tildes to mark beyond EOB
-      ;;window-select     ; visually switch windows
+       ;;window-select     ; visually switch windows
        workspaces        ; tab emulation, persistence & separate workspaces
        zen               ; distraction-free coding or writing
 
@@ -53,10 +53,10 @@
 
        :emacs
        dired             ; making dired pretty [functional]
-       electric          ; smarter, keyword-based electric-indent
-       ;;eww               ; the internet is gross
+       ;;electric          ; smarter, keyword-based electric-indent
+       eww               ; the internet is gross
        ;;ibuffer           ; interactive buffer management
-       tramp             ; remote files at your arthritic fingertips
+       ;;tramp             ; remote files at your arthritic fingertips
        undo              ; persistent, smarter undo for your inevitable mistakes
        vc                ; version-control and Emacs, sitting in a tree
 
